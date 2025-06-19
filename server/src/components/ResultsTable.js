@@ -4,7 +4,7 @@ export default function ResultsTable({ refreshKey }) {
   const [results, setResults] = useState([]);
 
   useEffect(() => {
-    fetch('https://navx-backend-production.up.railway.app/results')
+    fetch("https://navx-backend-production.up.railway.app/results")
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);

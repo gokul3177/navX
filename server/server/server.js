@@ -1,29 +1,28 @@
 require('dotenv').config();
+console.log('Loaded ENV:', process.env);
 const express = require('express');
-const mysql = require('mysql2'); 
-// const db = mysql.createConnection({
-//   host: 'sql12.freesqldatabase.com',              // or whatever host is listed
-//   user: 'sql12785569',           // replace with correct user
-//   password: 'pRM6sMIJrN',     // be exact
-//   database: 'sql12785569',        // exactly as shown
-//   port: 3306
-// });
-
+const mysql = require('mysql2');
 const cors = require('cors');
+
 const app = express();
-app.use(cors());
+
+// CORS for local + production frontend
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://gokul3177.github.io'], 
+  methods: ['GET', 'POST']
+}));
 app.use(express.json());
 
-// MySQL config
-
+// ✅ Railway MySQL Connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  port: process.env.DB_PORT || 4000,
+  port: parseInt(process.env.DB_PORT) || 3306,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME
 });
 
+// ✅ Test DB connection
 db.connect(err => {
   if (err) {
     console.error('❌ MySQL connection failed:', err);
@@ -32,8 +31,10 @@ db.connect(err => {
   }
 });
 
-// Save a simulation result
+// ✅ Save a simulation result
 app.post('/save-path', (req, res) => {
+  console.log("📦 Received path data:", req.body);
+
   const { algorithm, start, goal, obstacles, path, visitedCount, pathLength, timeTaken } = req.body;
 
   const sql = `
@@ -61,9 +62,9 @@ app.post('/save-path', (req, res) => {
   });
 });
 
-// Fetch all past results
+// ✅ Get past results
 app.get('/results', (req, res) => {
-  const sql = `SELECT * FROM paths ORDER BY id DESC LIMIT 10`; // Show latest 10 results
+  const sql = `SELECT * FROM paths ORDER BY id DESC LIMIT 10`;
   db.query(sql, (err, results) => {
     if (err) {
       console.error('❌ Error fetching results:', err);
@@ -73,18 +74,12 @@ app.get('/results', (req, res) => {
   });
 });
 
-app.post('/save-path', (req, res) => {
-  // logic to insert data into MySQL
-  res.send('Path saved!');
-});
-
-
-// Default route to test backend
+// ✅ Default test route
 app.get('/', (req, res) => {
   res.send('🎉 Backend is up and running!');
 });
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Backend running at http://localhost:${PORT}`);

@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "robot-sim-react",
   "version": "0.1.0",
   "private": true,
@@ -43,22 +42,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-=======
-  "name": "server",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "mysql2": "^3.14.1"
->>>>>>> f838d99c9640d440073a04360a0c3543877e7bf6
   }
 }
