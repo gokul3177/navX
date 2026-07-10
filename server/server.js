@@ -1,92 +1,44 @@
-// Description: Backend server for pathfinding simulation using Node.js, Express, and MySQL.
+/**
+ * @file server.js
+ * @description Application entry point — thin bootstrapper.
+ * Loads environment variables, validates config, connects to DB, then starts HTTP server.
+ */
+
 require('dotenv').config();
-console.log("🔍 Loaded .env:", {
-  DB_HOST: process.env.DB_HOST,
-  DB_USER: process.env.DB_USER,
-  DB_PASSWORD: process.env.DB_PASSWORD ? '✅ Set' : '❌ Not Set',
-  DB_NAME: process.env.DB_NAME,
-  DB_PORT: process.env.DB_PORT,
-});
-const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
 
-const app = express();
+const { validateEnv, config } = require('./src/config/env');
+const { testConnection } = require('./src/config/database');
+const app = require('./src/app');
+const logger = require('./src/utils/logger');
 
-// ✅ Allow requests from local and GitHub Pages frontend
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://gokul3177.github.io'],
-  methods: ['GET', 'POST'],
-}));
+// Validate required environment variables before anything else
+validateEnv();
 
-app.use(express.json());
+async function bootstrap() {
+  // Test DB connection (non-fatal — server still starts)
+  await testConnection();
 
-// ✅ MySQL connection using environment variables
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  port: parseInt(process.env.DB_PORT) || 3306,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
-// ✅ Connect to MySQL and log result
-db.connect((err) => {
-  if (err) {
-    console.error('❌ MySQL connection failed:', err.message);
-  } else {
-    console.log('✅ Connected to MySQL database');
-  }
-});
-
-// ✅ Root route to confirm server is running
-app.get('/', (req, res) => {
-  res.send('🎉 Backend is up and running!');
-});
-
-// ✅ Route to save pathfinding result
-app.post('/save-path', (req, res) => {
-  const { algorithm, start, goal, obstacles, path, visitedCount, pathLength, timeTaken } = req.body;
-
-  const sql = `
-    INSERT INTO paths 
-    (algorithm, start_point, goal_point, obstacles, path, visited_count, path_length, time_taken)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  db.query(sql, [
-    algorithm,
-    JSON.stringify(start),
-    JSON.stringify(goal),
-    JSON.stringify(obstacles),
-    JSON.stringify(path),
-    visitedCount,
-    pathLength,
-    timeTaken
-  ], (err) => {
-    if (err) {
-      console.error('❌ Error saving result:', err.message);
-      return res.status(500).json({ message: 'Insert failed' });
-    }
-    res.json({ message: '✅ Saved successfully' });
+  const server = app.listen(config.port, () => {
+    logger.info(`🚀 NavX API running on port ${config.port} [${config.nodeEnv}]`);
+    logger.info(`   Health check: http://localhost:${config.port}/api/health`);
   });
-});
 
-// ✅ Route to fetch recent simulation results
-app.get('/results', (req, res) => {
-  const sql = `SELECT * FROM paths ORDER BY id DESC LIMIT 10`;
+  // Graceful shutdown — close DB pool and stop accepting new connections
+  const shutdown = (signal) => {
+    logger.info(`Received ${signal}. Shutting down gracefully...`);
+    server.close(async () => {
+      logger.info('HTTP server closed');
+      process.exit(0);
+    });
+  };
 
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error('❌ Error fetching results:', err.message);
-      return res.status(500).json({ message: 'Error fetching results' });
-    }
-    res.json(results);
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT',  () => shutdown('SIGINT'));
+
+  // Catch unhandled promise rejections
+  process.on('unhandledRejection', (reason) => {
+    logger.error(`Unhandled rejection: ${reason}`);
   });
-});
+}
 
-// ✅ Start server on given port
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`🚀 Backend running at http://localhost:${PORT}`);
-});
+bootstrap();

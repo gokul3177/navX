@@ -1,41 +1,67 @@
+/**
+ * @file dijkstra.js
+ * @description Dijkstra's Shortest Path Algorithm.
+ *
+ * Guarantees the shortest path. Uses a MinHeap (binary heap) priority queue
+ * for O(log n) extraction, replacing the previous O(n log n) array.sort() approach.
+ *
+ * Time Complexity:  O((V + E) log V) — with binary heap
+ * Space Complexity: O(V)
+ */
+
+import { cellKey, inBounds, buildObstacleSet, reconstructPath, DIRECTIONS, MinHeap } from './utils';
+
+/**
+ * Runs Dijkstra's algorithm from start to goal.
+ *
+ * @param {[number,number]} start      - Starting cell [row, col]
+ * @param {[number,number]} goal       - Goal cell [row, col]
+ * @param {[number,number][]} obstacles - Blocked cells
+ * @param {number} gridSize             - Grid dimension (N×N)
+ * @returns {{ visited: [number,number][], path: [number,number][], nodesExplored: number }}
+ */
 export function dijkstra(start, goal, obstacles, gridSize) {
+  const obstacleSet = buildObstacleSet(obstacles);
+  const dist = new Map([[cellKey(start[0], start[1]), 0]]);
+  const parentMap = new Map();
   const visited = [];
-  const distance = {};
-  const parent = {};
-  const queue = [];
-  const key = ([x, y]) => `${x},${y}`;
-  const obstacleSet = new Set(obstacles.map(([x, y]) => key([x, y])));
-  distance[key(start)] = 0;
-  queue.push({ pos: start, dist: 0 });
+  const finalized = new Set();
 
-  while (queue.length > 0) {
-    queue.sort((a, b) => a.dist - b.dist);
-    const { pos: [x, y], dist } = queue.shift();
-    visited.push([x, y]);
+  const pq = new MinHeap((a, b) => a.cost - b.cost);
+  pq.push({ pos: start, cost: 0 });
 
-    if (x === goal[0] && y === goal[1]) {
-      const path = [[x, y]];
-      while (key(path[0]) in parent) {
-        path.unshift(parent[key(path[0])]);
-      }
-      return { visited, path };
+  while (!pq.isEmpty) {
+    const { pos: [r, c], cost } = pq.pop();
+    const k = cellKey(r, c);
+
+    // Skip if already finalized (stale entry in the heap)
+    if (finalized.has(k)) continue;
+    finalized.add(k);
+    visited.push([r, c]);
+
+    if (r === goal[0] && c === goal[1]) {
+      return {
+        visited,
+        path: reconstructPath(parentMap, start, goal),
+        nodesExplored: visited.length,
+      };
     }
 
-    for (const [dx, dy] of [[1,0], [-1,0], [0,1], [0,-1]]) {
-      const nx = x + dx, ny = y + dy;
-      const nKey = key([nx, ny]);
-      if (
-        nx >= 0 && nx < gridSize &&
-        ny >= 0 && ny < gridSize &&
-        !obstacleSet.has(nKey) &&
-        !(nKey in distance)
-      ) {
-        distance[nKey] = dist + 1;
-        parent[nKey] = [x, y];
-        queue.push({ pos: [nx, ny], dist: dist + 1 });
+    for (const [dr, dc] of DIRECTIONS) {
+      const nr = r + dr;
+      const nc = c + dc;
+      const nk = cellKey(nr, nc);
+
+      if (!inBounds(nr, nc, gridSize) || obstacleSet.has(nk) || finalized.has(nk)) continue;
+
+      const newCost = cost + 1;
+      if (newCost < (dist.get(nk) ?? Infinity)) {
+        dist.set(nk, newCost);
+        parentMap.set(nk, [r, c]);
+        pq.push({ pos: [nr, nc], cost: newCost });
       }
     }
   }
 
-  return { visited, path: [] };
+  return { visited, path: [], nodesExplored: visited.length };
 }

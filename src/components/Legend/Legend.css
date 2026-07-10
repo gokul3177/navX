@@ -1,0 +1,29 @@
+.legend-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.legend-box {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.legend-start { background-color: var(--color-cell-start); }
+.legend-goal { background-color: var(--color-cell-goal); }
+.legend-obstacle { background-color: var(--color-cell-obstacle); }
+.legend-visited { background-color: var(--color-cell-visited); }
+.legend-path { background-color: var(--color-cell-path); box-shadow: 0 0 5px var(--color-cell-path); }

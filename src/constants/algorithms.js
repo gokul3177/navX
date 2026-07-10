@@ -1,0 +1,52 @@
+export const ALGORITHMS = [
+  {
+    key: 'BFS',
+    name: 'Breadth-First Search',
+    description: 'Explores all neighbors level by level before moving deeper. Guarantees the shortest path on unweighted grids by systematically visiting nodes in order of their distance from the source.',
+    timeComplexity: 'O(V + E)',
+    spaceComplexity: 'O(V)',
+    guaranteesShortestPath: true,
+    weightedGraph: false,
+    category: 'uninformed',
+    color: 'var(--color-bfs)',
+    glow: 'var(--color-bfs-glow)',
+  },
+  {
+    key: 'DFS',
+    name: 'Depth-First Search',
+    description: 'Dives as deep as possible along each branch before backtracking. Does NOT guarantee the shortest path. Useful for exploring all possible paths or when memory is constrained.',
+    timeComplexity: 'O(V + E)',
+    spaceComplexity: 'O(V)',
+    guaranteesShortestPath: false,
+    weightedGraph: false,
+    category: 'uninformed',
+    color: 'var(--color-dfs)',
+    glow: 'var(--color-dfs-glow)',
+  },
+  {
+    key: 'DIJKSTRA',
+    name: "Dijkstra's Algorithm",
+    description: "Finds the shortest path by greedily expanding the node with the lowest cumulative cost. Works on weighted graphs. On unweighted grids it behaves like BFS but with a priority queue — exploring nodes in cost order.",
+    timeComplexity: 'O((V + E) log V)',
+    spaceComplexity: 'O(V)',
+    guaranteesShortestPath: true,
+    weightedGraph: true,
+    category: 'informed',
+    color: 'var(--color-dijkstra)',
+    glow: 'var(--color-dijkstra-glow)',
+  },
+  {
+    key: 'ASTAR',
+    name: 'A* Search',
+    description: "Combines Dijkstra's cost-so-far with a heuristic estimate of the remaining distance (Manhattan distance). Focuses the search toward the goal, typically exploring far fewer nodes than Dijkstra while still guaranteeing the shortest path.",
+    timeComplexity: 'O((V + E) log V)',
+    spaceComplexity: 'O(V)',
+    guaranteesShortestPath: true,
+    weightedGraph: true,
+    category: 'informed',
+    color: 'var(--color-astar)',
+    glow: 'var(--color-astar-glow)',
+  }
+];
+
+export const getAlgorithmByKey = (key) => ALGORITHMS.find(a => a.key === key) || ALGORITHMS[0];
