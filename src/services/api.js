@@ -6,7 +6,7 @@
  */
 
 // Uses the environment variable if available, otherwise defaults to local backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 /**
  * Generic fetch wrapper with error handling.
