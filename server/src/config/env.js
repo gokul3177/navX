@@ -6,7 +6,7 @@
  */
 
 // Removed MySQL vars for local SQLite persistence
-const REQUIRED_VARS = [];
+const REQUIRED_VARS = ['DATABASE_URL'];
 
 function validateEnv() {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
@@ -29,8 +29,11 @@ const config = {
       ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
       : ['http://localhost:3000'],
   },
-  // DB config no longer needed for MySQL, but kept empty object for backward compatibility if any file checks it
   db: {}
 };
 
-module.exports = { validateEnv, config };
+// Export individual vars for direct use in database.js
+const DATABASE_URL = process.env.DATABASE_URL;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+module.exports = { validateEnv, config, DATABASE_URL, NODE_ENV };
